@@ -17,6 +17,19 @@ jobs:
 
       # TODO build, test and deploy project
 
+      - name: Deploy
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "zvezdin-user-service"
+          heroku_email: "artem2000vlas@mail.ru"
+          usedocker: true
+      
+      - name: Timeout
+        run: sleep 50s
+        shell: bash
+        
+      
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
