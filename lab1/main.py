@@ -1,5 +1,6 @@
 from flask import Flask, request
 import psycopg2
+import os
 
 DB_NAME = 'ddn1snn0gj8q6a'
 DB_HOST = 'ec2-54-76-105-132.eu-west-1.compute.amazonaws.com'
@@ -55,7 +56,7 @@ class Server:
 
 
 server_host = '0.0.0.0'
-server_port = 8080
+server_port = os.environ.get('PORT', 8080)
 
 server = Server(host=server_host, port=server_port)
 server.run_server()
