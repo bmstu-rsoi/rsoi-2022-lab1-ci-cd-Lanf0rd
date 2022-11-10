@@ -36,20 +36,59 @@ class Server:
 
     def add_new_persons(self):
         request_body = dict(request.json)
-        name = request_body['name']
-        age = request_body['age']
-        address = request_body['address']
-        work = request_body['work']
-        return f'Success added {name}', 200
+        cursor = self.connection.cursor()
+        try:
+            name = request_body['name']
+            age = request_body['age']
+            address = request_body['address']
+            work = request_body['work']
+            cursor.execute('insert into persons (name, age, address, work) values (%s, %s, %s, %s)',
+                               (name, age, address, work))
+        except:
+            cursor.close()
+            return 'Invalid data', 400
+        cursor.close()
+        cursor.commit()
+        return 'Created new Person', 201
     
     def get_person_by_id(self, id):
-        return 'get ' + id
+        cursor = self.connection.cursor()
+        cursor.execute('select id, name, age, address, work from persons where id = %s', id)
+        func_record = cursor.fetchall()
+        cursor.close()
+        if func_record == []:
+            return 'Not found Person for ID', 404
+        return func_record
 
     def delete_person_by_id(self, id):
-        return 'delete ' + id
+        cursor = self.connection.cursor()
+        cursor.execute('DELETE from persons where id = %s;', id)
+        cursor.close()
+        cursor.commit()
+        return 'Person for ID was removed', 204
 
     def patch_person_by_id(self, id):
-        return 'patch ' + id
+        request_body = dict(request.json)
+        cursor = self.connection.cursor()
+        cursor.execute('select id from persons where id = %s', id)
+        func_record = cursor.fetchall()
+        if func_record == []:
+            return 'Not found Person for ID', 404
+        try:
+            name = request_body['name']
+            age = request_body['age']
+            address = request_body['address']
+            work = request_body['work']
+            cursor.execute('update persons set name = %s, age = %s, address = %s, work = %s WHERE id = %s;',
+                               (name, age, address, work, id))
+        except:
+            cursor.close()
+            return 'Invalid data', 400
+        cursor.execute('select id, name, age, address, work from persons where id = %s', id)
+        func_record = cursor.fetchall()
+        cursor.close()
+        cursor.commit()
+        return func_record
 
 
 
