@@ -19,7 +19,6 @@ def persons_to_json(persons):
     return json.dumps(listp)
 
 def person_to_json(person):
-    print(person)
     dictionary = {'id':person[0], 'name':person[1], 'age':person[2], 'address':person[3], 'work':person[4]}
     return json.dumps(dictionary)
 
@@ -97,22 +96,34 @@ class Server:
 
         request_body = dict(request.json)
         cursor = self.connection.cursor()
-        cursor.execute('select id from persons where id = %s', (id,))
+        cursor.execute('select id, name, age, address, work from persons where id = %s', (id,))
         func_record = cursor.fetchall()
         if func_record == []:
             return flask.Response(json.dumps({'msg': f'There is no person with id {id}'}), status.HTTP_404_NOT_FOUND,)
-        try:
+        if 'name' in request_body:
             name = request_body['name']
+        else:
+            name = func_record[0][1]
+        if 'age' in request_body:
             age = request_body['age']
+        else:
+            age = func_record[0][2]
+        if 'address' in request_body:
             address = request_body['address']
+        else:
+            address = func_record[0][3]
+        if 'work' in request_body:
             work = request_body['work']
+        else:
+            work = func_record[0][4]
+        try:
             cursor.execute('update persons set name = %s, age = %s, address = %s, work = %s WHERE id = %s;',
                                (name, age, address, work, id))
         except:
             self.connection.rollback()
             cursor.close()
             return flask.Response(json.dumps({'msg': 'string', 'errors': {'param1': 'param2'}}), status.HTTP_400_BAD_REQUEST)
-        cursor.execute('select id, name, age, address, work from persons where id = %s', id)
+        cursor.execute('select id, name, age, address, work from persons where id = %s', (id,))
         func_record = cursor.fetchall()
         cursor.close()
         self.connection.commit()
