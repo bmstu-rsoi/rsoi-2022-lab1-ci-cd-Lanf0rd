@@ -46,7 +46,10 @@ class Server:
         cursor.execute('select * from persons')
         func_record = cursor.fetchall()
         cursor.close()
-        return persons_to_json(func_record), 200
+
+        response = flask.Response(persons_to_json(func_record))
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     def add_new_persons(self):
         request_body = dict(request.json)
