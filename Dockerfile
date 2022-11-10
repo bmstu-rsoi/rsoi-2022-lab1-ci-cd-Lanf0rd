@@ -2,7 +2,8 @@ FROM python
 
 RUN pip install \
     flask \
-    psycopg2
+    psycopg2 \
+	flask_api
 
 COPY lab1/ /app/
 
