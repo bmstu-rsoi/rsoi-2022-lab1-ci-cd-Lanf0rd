@@ -20,6 +20,8 @@ class Server:
         self.app.add_url_rule('/api/v1/persons/<id>', view_func = self.delete_person_by_id, methods = ['DELETE'])
         self.app.add_url_rule('/api/v1/persons/<id>', view_func = self.patch_person_by_id, methods = ['PATCH'])
 
+        self.connection = psycopg2.connect(dbname = DB_NAME, user = LOGIN, password = PASSWORD, host = DB_HOST)
+
     def run_server(self):
         return self.app.run(host = self.host, port = self.port)
 
@@ -27,8 +29,7 @@ class Server:
 ##        return 'Home page'
 
     def get_all_persons(self):
-        connection = psycopg2.connect(dbname = DB_NAME, user = LOGIN, password = PASSWORD, host = DB_HOST)
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
         cursor.execute('select * from persons')
         func_record = cursor.fetchall()
         cursor.close()
@@ -48,12 +49,12 @@ class Server:
             cursor.close()
             return 'Invalid data', 400
         cursor.close()
-        cursor.commit()
+        self.connection.commit()
         return 'Created new Person', 201
     
     def get_person_by_id(self, id):
         cursor = self.connection.cursor()
-        cursor.execute('select id, name, age, address, work from persons where id = %s', id)
+        cursor.execute('select id, name, age, address, work from persons where id = %s', (id,))
         func_record = cursor.fetchall()
         cursor.close()
         if func_record == []:
@@ -62,15 +63,15 @@ class Server:
 
     def delete_person_by_id(self, id):
         cursor = self.connection.cursor()
-        cursor.execute('DELETE from persons where id = %s;', id)
+        cursor.execute('delete from persons where id = %s;', (id,))
         cursor.close()
-        cursor.commit()
+        self.connection.commit()
         return 'Person for ID was removed', 204
 
     def patch_person_by_id(self, id):
         request_body = dict(request.json)
         cursor = self.connection.cursor()
-        cursor.execute('select id from persons where id = %s', id)
+        cursor.execute('select id from persons where id = %s', (id,))
         func_record = cursor.fetchall()
         if func_record == []:
             return 'Not found Person for ID', 404
@@ -87,7 +88,7 @@ class Server:
         cursor.execute('select id, name, age, address, work from persons where id = %s', id)
         func_record = cursor.fetchall()
         cursor.close()
-        cursor.commit()
+        self.connection.commit()
         return func_record
 
 
