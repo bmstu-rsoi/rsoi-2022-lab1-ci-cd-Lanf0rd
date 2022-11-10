@@ -79,13 +79,16 @@ class Server:
             id = int(id)
         except:
             return 'Invalid data', 400
+        
         cursor = self.connection.cursor()
         cursor.execute('select id, name, age, address, work from persons where id = %s', (id,))
         func_record = cursor.fetchall()
         cursor.close()
         if func_record == []:
             return flask.Response(json.dumps({'msg': f'There is no person with id {id}'}), status.HTTP_404_NOT_FOUND,)
-        return person_to_json(func_record[0]), 200
+        response = flask.Response(person_to_json(func_record[0]), status.HTTP_200_OK)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     def delete_person_by_id(self, id):
         try:
