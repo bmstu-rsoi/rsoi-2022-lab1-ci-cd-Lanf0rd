@@ -9,8 +9,7 @@ DB_NAME = 'ddn1snn0gj8q6a'
 DB_HOST = 'ec2-54-76-105-132.eu-west-1.compute.amazonaws.com'
 LOGIN = 'ueujuyabujdjip'
 PASSWORD = '2ed54beeb0d872556ee17f6088a1729424a44a892ecee12d1c01203e6efb5b86'
-
-
+    
 
 def persons_to_json(persons):
     listp = []
@@ -75,10 +74,6 @@ class Server:
 
     
     def get_person_by_id(self, id):
-        try:
-            id = int(id)
-        except:
-            return 'Invalid data', 400
         
         cursor = self.connection.cursor()
         cursor.execute('select id, name, age, address, work from persons where id = %s', (id,))
@@ -91,10 +86,7 @@ class Server:
         return response
 
     def delete_person_by_id(self, id):
-        try:
-            id = int(id)
-        except:
-            return 'Invalid data', 400
+
         cursor = self.connection.cursor()
         cursor.execute('delete from persons where id = %s;', (id,))
         cursor.close()
@@ -102,16 +94,13 @@ class Server:
         return 'Person for ID was removed', 204
 
     def patch_person_by_id(self, id):
-        try:
-            id = int(id)
-        except:
-            return 'Invalid data', 400
+
         request_body = dict(request.json)
         cursor = self.connection.cursor()
         cursor.execute('select id from persons where id = %s', (id,))
         func_record = cursor.fetchall()
         if func_record == []:
-            return 'Not found Person for ID', 404
+            return flask.Response(json.dumps({'msg': f'There is no person with id {id}'}), status.HTTP_404_NOT_FOUND,)
         try:
             name = request_body['name']
             age = request_body['age']
@@ -122,12 +111,14 @@ class Server:
         except:
             self.connection.rollback()
             cursor.close()
-            return 'Invalid data', 400
+            return flask.Response(json.dumps({'msg': 'string', 'errors': {'param1': 'param2'}}), status.HTTP_400_BAD_REQUEST)
         cursor.execute('select id, name, age, address, work from persons where id = %s', id)
         func_record = cursor.fetchall()
         cursor.close()
         self.connection.commit()
-        return func_record
+        response = flask.Response(person_to_json(func_record[0]), status.HTTP_200_OK)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
 
 
